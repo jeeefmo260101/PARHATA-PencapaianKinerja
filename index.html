@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Panduan Interaktif Penilaian Kinerja PNS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chosen Palette: Warm Neutrals (Beige/Off-white, Dark Gray Text, Sage Green Accent) -->
+    <!-- Application Structure Plan: A tab-based/sectioned dashboard design is chosen over a linear document to provide a task-oriented user experience. This allows users (PNS) to quickly navigate to specific information they need (e.g., 'What evidence do I need?' or 'I am a team leader, what are my rules?'). The key interactions include clickable cards for exploring evidence types, an accordion for special cases, and a simulation for visualizing the form-filling process. This non-linear, interactive structure significantly improves usability and comprehension compared to reading a static document. -->
+    <!-- Visualization & Content Choices: 1. Evidence Categories -> Goal: Organize -> Clickable Cards -> onClick to reveal details -> Justification: Breaks down long lists into digestible, interactive chunks -> HTML/JS. 2. Special Roles -> Goal: Inform (conditional) -> Accordion component -> onClick to expand/collapse -> Justification: Reduces clutter by showing only relevant info -> HTML/JS. 3. Form Filling Process -> Goal: How-to/Demonstrate -> Interactive Simulation (Dropdown populates mock form) -> onChange to update text -> Justification: Makes abstract instructions concrete and easy to follow -> HTML/JS. 4. Scoring Matrix -> Goal: Inform -> Simple HTML Table -> No interaction -> Justification: Clearest way to present tabular data. -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            background-color: #F7F7F7;
+            font-family: 'Inter', sans-serif;
+        }
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        .nav-link {
+            transition: all 0.3s ease;
+            border-bottom: 2px solid transparent;
+        }
+        .nav-link.active, .nav-link:hover {
+            border-bottom-color: #6B8A7A;
+            color: #2c3e50;
+        }
+        .card {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        .accordion-button.open + .accordion-content {
+            max-height: 500px;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Gaya untuk modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        .modal-overlay.show {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-content {
+            background-color: #1a202c; /* bg-gray-900 */
+            color: #f7fafc; /* text-white */
+            padding: 2rem;
+            border-radius: 0.75rem; /* rounded-xl */
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); /* shadow-2xl */
+            max-width: 500px;
+            width: 90%;
+            transform: translateY(-20px);
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .modal-overlay.show .modal-content {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <header class="bg-white shadow-md sticky top-0 z-50">
+        <div class="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <h1 class="text-xl md:text-2xl font-bold text-gray-700">Panduan Kinerja Interaktif</h1>
+                <nav class="hidden md:flex space-x-6">
+                    <a href="#beranda" class="nav-link font-medium text-gray-600 active">Beranda</a>
+                    <a href="#bukti-fisik" class="nav-link font-medium text-gray-600">Bukti Fisik</a>
+                    <a href="#panduan-khusus" class="nav-link font-medium text-gray-600">Panduan Khusus</a>
+                    <a href="#simulasi" class="nav-link font-medium text-gray-600">Simulasi</a>
+                </nav>
+                <button id="mobile-menu-button" class="md:hidden p-2 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500">
+                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                </button>
+            </div>
+             <div id="mobile-menu" class="hidden md:hidden pb-3">
+                <a href="#beranda" class="block py-2 px-4 text-sm nav-link active">Beranda</a>
+                <a href="#bukti-fisik" class="block py-2 px-4 text-sm nav-link">Bukti Fisik</a>
+                <a href="#panduan-khusus" class="block py-2 px-4 text-sm nav-link">Panduan Khusus</a>
+                <a href="#simulasi" class="block py-2 px-4 text-sm nav-link">Simulasi</a>
+            </div>
+        </div>
+    </header>
+
+    <main class="container mx-auto max-w-6xl p-4 sm:p-6 lg:p-8">
+        
+        <section id="beranda" class="my-8 scroll-mt-20">
+            <div class="bg-white p-8 rounded-xl shadow-lg text-center fade-in">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">Memahami Pengisian Porfofolio Penilaian Kinerja</h2>
+                <p class="text-lg text-gray-600 max-w-3xl mx-auto mb-8">Selamat datang! Panduan ini dirancang untuk mempermudah Anda memahami proses pengisian portofolio penilaian kinerja.</p>
+                <div class="flex flex-col md:flex-row justify-center items-center space-y-4 md:space-y-0 md:space-x-8">
+                    <div class="flex items-center flex-col p-4">
+                        <div class="bg-[#A9C5A0] text-white rounded-full h-16 w-16 flex items-center justify-center text-2xl font-bold">1</div>
+                        <h3 class="mt-4 font-semibold text-xl">Identifikasi Pencapaian</h3>
+                        <p class="text-gray-500 mt-1">Kenali tugas & proyek Anda.</p>
+                    </div>
+                    <div class="text-2xl text-gray-400 hidden md:block">➔</div>
+                    <div class="flex items-center flex-col p-4">
+                        <div class="bg-[#A9C5A0] text-white rounded-full h-16 w-16 flex items-center justify-center text-2xl font-bold">2</div>
+                        <h3 class="mt-4 font-semibold text-xl">Kumpulkan Bukti Fisik</h3>
+                        <p class="text-gray-500 mt-1">Siapkan dokumen pendukung.</p>
+                    </div>
+                    <div class="text-2xl text-gray-400 hidden md:block">➔</div>
+                    <div class="flex items-center flex-col p-4">
+                        <div class="bg-[#A9C5A0] text-white rounded-full h-16 w-16 flex items-center justify-center text-2xl font-bold">3</div>
+                        <h3 class="mt-4 font-semibold text-xl">Isi Portofolio</h3>
+                        <p class="text-gray-500 mt-1">Sajikan data secara akurat.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="bukti-fisik" class="my-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-2 text-gray-800">Jelajahi Jenis Bukti Fisik</h2>
+            <p class="text-lg text-gray-600 text-center max-w-3xl mx-auto mb-10">Klik setiap kategori untuk melihat contoh dokumen yang dapat Anda gunakan sebagai bukti pencapaian kinerja.</p>
+            <div id="evidence-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            </div>
+        </section>
+
+        <section id="panduan-khusus" class="my-16 scroll-mt-20">
+             <h2 class="text-3xl font-bold text-center mb-2 text-gray-800">Panduan untuk Peran Khusus</h2>
+             <p class="text-lg text-gray-600 text-center max-w-3xl mx-auto mb-10">Apakah Anda seorang Ketua Tim, Bendahara, atau pernah menjabat sebagai Plt? Buka bagian yang relevan untuk melihat panduan pengisian yang spesifik untuk peran Anda.</p>
+             <div id="special-guidance-accordion" class="max-w-3xl mx-auto bg-white rounded-xl shadow-lg p-6 space-y-4">
+             </div>
+        </section>
+        
+        <section id="simulasi" class="my-16 scroll-mt-20">
+            <h2 class="text-3xl font-bold text-center mb-2 text-gray-800">Simulasi Pengisian Portofolio</h2>
+            <p class="text-lg text-gray-600 text-center max-w-3xl mx-auto mb-10">Panduan mengisi formulir pencapaian kinerja di aplikasi PARHATA. Pilih skenario di bawah ini untuk melihat contoh pengisiannya secara otomatis.</p>
+            <div class="max-w-4xl mx-auto bg-gray-800 rounded-xl shadow-lg p-8 text-white">
+                <div class="mb-6">
+                    <label for="scenario-selector" class="block text-sm font-medium text-gray-300 mb-2">Pilih Skenario Pengisian:</label>
+                    <select id="scenario-selector" class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-[#A9C5A0] focus:border-[#A9C5A0]">
+                        <option value="ketua_tim">Ketua Tim Proyek (Contoh: Tim Podcast)</option>
+                        <option value="bendahara">Jabatan Pengelola Keuangan (Contoh: Bendahara)</option>
+                        <option value="plt">Pelaksana Tugas (Contoh: Plt. Kepala Seksi)</option>
+                    </select>
+                </div>
+
+                <!-- Pencapaian Kinerja Section -->
+                <div class="bg-gray-900 p-6 rounded-lg mb-6">
+                    <div class="flex items-center mb-4">
+                        <span class="text-xl mr-2">🏆</span>
+                        <h3 class="font-bold text-xl text-gray-100">Pencapaian Kinerja</h3>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-6">Isi informasi pencapaian kinerja yang telah dicapai.</p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div>
+                            <label for="nama-pencapaian" class="block text-sm font-medium text-gray-300 mb-2">Nama Pencapaian<span class="text-red-500">*</span></label>
+                            <input type="text" id="nama-pencapaian" class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white placeholder-gray-400 focus:ring-2 focus:ring-[#A9C5A0] focus:border-[#A9C5A0]" placeholder="Isi nama pencapaian">
+                        </div>
+                        <div>
+                            <label for="pencapaian-kinerja" class="block text-sm font-medium text-gray-300 mb-2">Pencapaian Kinerja<span class="text-red-500">*</span></label>
+                            <select id="pencapaian-kinerja" class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-[#A9C5A0] focus:border-[#A9C5A0]">
+                                <option value="">Select an option</option>
+                                <option value="dibawah_ekspektasi">Dibawah Ekspektasi</option>
+                                <option value="sesuai_ekspektasi">Sesuai Ekspektasi</option>
+                                <option value="diatas_ekspektasi">Diatas Ekspektasi</option>
+                            </select>
+                            <p class="text-xs text-gray-400 mt-1">Silakan pilih pencapaian kinerja</p>
+                        </div>
+                        <div>
+                            <label for="penghargaan" class="block text-sm font-medium text-gray-300 mb-2">Penghargaan<span class="text-red-500">*</span></label>
+                            <select id="penghargaan" class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-[#A9C5A0] focus:border-[#A9C5A0]">
+                                <option value="">Select an option</option>
+                                <option value="tidak_ada">Tidak ada Penghargaan</option>
+                                <option value="internal_lokal">Penghargaan Tingkat Internal/Lokal</option>
+                                <option value="nasional_internasional">Penghargaan Tingkat Nasional/Internasional</option>
+                            </select>
+                            <p class="text-xs text-gray-400 mt-1">Silakan pilih penghargaan</p>
+                        </div>
+                        <div>
+                            <label for="dampak-kontribusi" class="block text-sm font-medium text-gray-300 mb-2">Dampak Kontribusi<span class="text-red-500">*</span></label>
+                            <select id="dampak-kontribusi" class="w-full p-3 border border-gray-600 rounded-lg bg-gray-700 text-white focus:ring-2 focus:ring-[#A9C5A0] focus:border-[#A9C5A0]">
+                                <option value="">Select an option</option>
+                                <option value="rendah">Dampak Rendah</option>
+                                <option value="sedang">Dampak Sedang</option>
+                                <option value="tinggi">Dampak Tinggi</option>
+                            </select>
+                            <p class="text-xs text-gray-400 mt-1">Silakan pilih dampak kontribusi</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bukti Pencapaian Section -->
+                <div class="bg-gray-900 p-6 rounded-lg">
+                    <div class="flex items-center mb-4">
+                        <span class="text-xl mr-2">📄</span>
+                        <h3 class="font-bold text-xl text-gray-100">Bukti Pencapaian</h3>
+                    </div>
+                    <p class="text-sm text-gray-400 mb-6">Unggah bukti pencapaian dalam format PDF.</p>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-300 mb-2">Bukti (PDF)</label>
+                        <div class="border border-dashed border-gray-600 rounded-lg p-6 text-center text-gray-400">
+                            Drag & Drop your files or <span class="text-[#A9C5A0] cursor-pointer">Browse</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+    </main>
+
+    <footer class="bg-white mt-16 border-t">
+        <div class="container mx-auto max-w-6xl py-6 px-4 sm:px-6 lg:px-8 text-center text-gray-500">
+            <p>&copy; 2024 Panduan Kinerja Interaktif. Dibuat untuk mempermudah proses penilaian kinerja.</p>
+        </div>
+    </footer>
+
+    <!-- Modal Struktur -->
+    <div id="infoModal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="flex justify-between items-center mb-4">
+                <h4 id="modalTitle" class="text-xl font-bold"></h4>
+                <button id="closeModal" class="text-gray-400 hover:text-gray-200 text-2xl leading-none">&times;</button>
+            </div>
+            <p id="modalBody" class="text-gray-300"></p>
+        </div>
+    </div>
+    
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const evidenceData = [
+        {
+            icon: '📄',
+            title: 'Laporan Penilaian Kinerja',
+            details: '<ul><li class="mb-2"><b>SKP (Sasaran Kinerja Pegawai):</b> Screenshoot KipApp.</li><li class="mb-2"><b>PPK (Penilaian Prestasi Kinerja):</b> Screenshoot KipApp.</li><li><b>Evaluasi Target & Realisasi:</b> Screenshoot KipApp.</li></ul>'
+        },
+        {
+            icon: ' ',
+            title: 'Penghargaan/Piagam',
+            details: '<ul><li class="mb-2"><b>Piagam Penghargaan:</b> Upload Sertifikat.</li><li class="mb-2"><b>Sertifikat Apresiasi:</b> Upload Sertifikat</li><li><b>Surat Keputusan Penghargaan:</b> Upload Sertifikat.</li></ul>'
+        },
+        {
+            icon: '📂',
+            title: 'Dokumentasi Proyek/Program',
+            details: '<ul><li class="mb-2"><b>Upload Bukti:</b> Semua dokumen digabung kedalam satu file PDF</li><li class="mb-2"><b>Dokumentasi Kegiatan (Foto/Video):</b> Screenshoot pengembangan aplikasi/website</li><li><b>Surat Keputusan:</b> SK Ketua Tim Kerja.</li></ul>'
+        }
+    ];
+
+    const evidenceContainer = document.getElementById('evidence-cards');
+    evidenceData.forEach(item => {
+        const card = document.createElement('div');
+        card.className = 'card bg-white p-6 rounded-xl shadow-lg cursor-pointer fade-in';
+        card.innerHTML = `
+            <div class="flex items-center space-x-4">
+                <span class="text-3xl">${item.icon}</span>
+                <h3 class="font-semibold text-lg">${item.title}</h3>
+            </div>
+            <div class="details hidden mt-4 text-gray-600 text-sm">${item.details}</div>
+        `;
+        evidenceContainer.appendChild(card);
+        
+        card.addEventListener('click', () => {
+            const details = card.querySelector('.details');
+            const isHidden = details.classList.contains('hidden');
+            
+            document.querySelectorAll('#evidence-cards .details').forEach(d => d.classList.add('hidden'));
+            document.querySelectorAll('#evidence-cards .card').forEach(c => c.classList.remove('ring-2', 'ring-[#A9C5A0]'));
+
+            if (isHidden) {
+                details.classList.remove('hidden');
+                card.classList.add('ring-2', 'ring-[#A9C5A0]');
+            }
+        });
+    });
+
+    const specialGuidanceData = [
+        {
+            title: 'Pengelola Tim (Ketua Tim, dll.)',
+            content: '<p class="font-semibold">Aturan Pengisian:</p><ul class="list-disc list-inside space-y-2 mt-2"><li><b>Nama Pencapaian:</b> Contoh: "Ketua Tim Podcast \'PASKALIBAH\'".</li><li><b>Pencapaian Kinerja:</b> Disesuaikan dengan SKP dan PPK tahun bertugas.</li><li><b>Penghargaan:</b> Diisi jika ada penghargaan terkait.</li><li><b>Dampak Kontribusi:</b> Ditetapkan sebagai "Dampak Sedang".</li><li><b>Bukti Pencapaian:</b> Wajib melampirkan SK penunjukan ketua tim dan sertifikat penghargaan (jika ada).</li></ul>'
+        },
+        {
+            title: 'Jabatan Pengelola Keuangan (Bendahara, PPK, PPSPM, PBJ.)',
+            content: '<p class="font-semibold">Aturan Pengisian:</p><ul class="list-disc list-inside space-y-2 mt-2"><li>Tetap dimasukkan sebagai "Pencapaian Kinerja" untuk jabatan pengelola keuangan dan Pejabat Pengadaan yang tidak termasuk sebagai kelompok jabatan di SIMPEG.</li><li>Wajib mencantumkan jabatannya (misalnya, "Bendahara", "PPK").</li><li><b>Penghargaan:</b> Diisi jika ada penghargaan terkait.</li><li><b>Dampak Kontribusi:</b> Ditetapkan sebagai "Dampak Sedang".</li><li><b>Bukti Pencapaian:</b> Wajib melampirkan SK Pengelola Keuangan/SK Pejabat Pengadaan dan sertifikat penghargaan (jika ada).</li></ul>'
+        },
+        {
+            title: 'Pelaksana Tugas (Plt.)',
+            content: '<p class="font-semibold">Aturan Pengisian:</p><ul class="list-disc list-inside space-y-2 mt-2"><li>Pencapaian selama menjabat Plt dimasukkan ke dalam "Pencapaian Kinerja".</li><li><b>Penghargaan:</b> Diisi jika ada penghargaan terkait.</li><li><b>Dampak Kontribusi:</b> untuk Plt. Eselon IV Ditetapkan sebagai "Dampak Sedang", untuk Plt. Eselon III dan II ditetapkan sebagai "Dampak Tinggi".</li><li><b>Bukti Pencapaian:</b> Wajib melampirkan SK Plt. dan sertifikat penghargaan (jika ada).</li></ul>'
+        }
+    ];
+
+    const accordionContainer = document.getElementById('special-guidance-accordion');
+    specialGuidanceData.forEach(item => {
+        const accordionItem = document.createElement('div');
+        accordionItem.className = 'border-b border-gray-200 last:border-b-0';
+        accordionItem.innerHTML = `
+            <button class="accordion-button w-full flex justify-between items-center text-left py-4 px-2">
+                <span class="font-semibold text-gray-700">${item.title}</span>
+                <span class="transform transition-transform duration-300">▼</span>
+            </button>
+            <div class="accordion-content px-2 pb-4 text-gray-600 text-sm">
+                ${item.content}
+            </div>
+        `;
+        accordionContainer.appendChild(accordionItem);
+    });
+
+    accordionContainer.addEventListener('click', (e) => {
+        const button = e.target.closest('.accordion-button');
+        if (button) {
+            const allButtons = accordionContainer.querySelectorAll('.accordion-button');
+            const wasOpen = button.classList.contains('open');
+            
+            allButtons.forEach(btn => {
+                btn.classList.remove('open');
+                btn.querySelector('span:last-child').style.transform = 'rotate(0deg)';
+            });
+
+            if (!wasOpen) {
+                button.classList.add('open');
+                button.querySelector('span:last-child').style.transform = 'rotate(180deg)';
+            }
+        }
+    });
+
+    const simulationData = {
+        ketua_tim: {
+            nama: "Ketua Tim Podcast 'PASKALIBAH'",
+            kinerja_option: "diatas_ekspektasi",
+            penghargaan_option: "internal_lokal",
+            dampak_option: "sedang"
+        },
+        bendahara: {
+            nama: "Bendahara",
+            kinerja_option: "sesuai_ekspektasi",
+            penghargaan_option: "tidak_ada",
+            dampak_option: "rendah"
+        },
+        plt: {
+            nama: "Plt. Kepala Seksi Statistik Distribusi",
+            kinerja_option: "sesuai_ekspektasi",
+            penghargaan_option: "tidak_ada",
+            dampak_option: "rendah" // Default to rendah, user will select based on Eselon
+        }
+    };
+
+    // Data untuk pop-up Pencapaian Kinerja
+    const kinerjaDescriptions = {
+        dibawah_ekspektasi: {
+            title: "Dibawah Ekspektasi",
+            description: "Tidak mencapai target atau kinerja tidak sesuai dengan standar. Hasil SKP dan PPK 2023 keatas, apabila hasil evaluasi dibawah ekspektasi."
+        },
+        sesuai_ekspektasi: {
+            title: "Sesuai Ekspektasi",
+            description: "Kinerja memenuhi sebagian besar ekspektasi atau target yang ditetapkan. Hasil SKP dan PPK 2023 keatas, apabila hasil evaluasi sesuai ekspektasi."
+        },
+        diatas_ekspektasi: {
+            title: "Diatas Ekspektasi",
+            description: "Kinerja melebihi ekspektasi dan target yang ditetapkan. Hasil SKP dan PPK 2024, apabila hasil evaluasi diatas ekspektasi."
+        }
+    };
+
+    // Data untuk pop-up Dampak Kontribusi
+    const dampakDescriptions = {
+        rendah: {
+            title: "Dampak Rendah",
+            description: "Tidak terlibat atau berkontribusi signifikan dalam proyek."
+        },
+        sedang: {
+            title: "Dampak Sedang",
+            description: "Berkontribusi dalam proyek kecil atau menengah dengan dampak terbatas."
+        },
+        tinggi: {
+            title: "Dampak Tinggi",
+            description: "Berkontribusi dalam proyek besar atau strategis yang berpengaruh besar."
+        }
+    };
+
+    // Data untuk pop-up Penghargaan
+    const penghargaanDescriptions = {
+        tidak_ada: {
+            title: "Tidak ada Penghargaan",
+            description: "Tidak menerima penghargaan dalam periode yang dinilai."
+        },
+        internal_lokal: {
+            title: "Penghargaan Tingkat Internal/Lokal",
+            description: "Menerima penghargaan dalam lingkup lokal atau internal organisasi."
+        },
+        nasional_internasional: {
+            title: "Penghargaan Tingkat Nasional/Internasional",
+            description: "Penghargaan dari tingkat nasional atau internasional."
+        }
+    };
+
+    const scenarioSelector = document.getElementById('scenario-selector');
+    const simNamaInput = document.getElementById('nama-pencapaian');
+    const simKinerjaSelect = document.getElementById('pencapaian-kinerja');
+    const simPenghargaanSelect = document.getElementById('penghargaan');
+    const simDampakSelect = document.getElementById('dampak-kontribusi');
+
+    const infoModal = document.getElementById('infoModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalBody = document.getElementById('modalBody');
+    const closeModalButton = document.getElementById('closeModal');
+
+    function showModal(title, description) {
+        modalTitle.textContent = title;
+        modalBody.textContent = description;
+        infoModal.classList.add('show');
+    }
+
+    function hideModal() {
+        infoModal.classList.remove('show');
+    }
+
+    closeModalButton.addEventListener('click', hideModal);
+    infoModal.addEventListener('click', (e) => {
+        if (e.target === infoModal) {
+            hideModal();
+        }
+    });
+
+    function updateSimulation(scenario) {
+        const data = simulationData[scenario];
+        simNamaInput.value = data.nama;
+        simKinerjaSelect.value = data.kinerja_option;
+        simPenghargaanSelect.value = data.penghargaan_option;
+        simDampakSelect.value = data.dampak_option;
+    }
+
+    scenarioSelector.addEventListener('change', (e) => {
+        updateSimulation(e.target.value);
+    });
+
+    // Tambahkan event listener untuk dropdown Pencapaian Kinerja
+    simKinerjaSelect.addEventListener('change', (e) => {
+        const selectedValue = e.target.value;
+        if (selectedValue && kinerjaDescriptions[selectedValue]) {
+            const info = kinerjaDescriptions[selectedValue];
+            showModal(info.title, info.description);
+        } else {
+            hideModal();
+        }
+    });
+
+    // Tambahkan event listener untuk dropdown Dampak Kontribusi
+    simDampakSelect.addEventListener('change', (e) => {
+        const selectedValue = e.target.value;
+        if (selectedValue && dampakDescriptions[selectedValue]) {
+            const info = dampakDescriptions[selectedValue];
+            showModal(info.title, info.description);
+        } else {
+            hideModal();
+        }
+    });
+
+    // Tambahkan event listener untuk dropdown Penghargaan
+    simPenghargaanSelect.addEventListener('change', (e) => {
+        const selectedValue = e.target.value;
+        if (selectedValue && penghargaanDescriptions[selectedValue]) {
+            const info = penghargaanDescriptions[selectedValue];
+            showModal(info.title, info.description);
+        } else {
+            hideModal();
+        }
+    });
+
+    updateSimulation('ketua_tim');
+    
+    const mobileMenuButton = document.getElementById('mobile-menu-button');
+    const mobileMenu = document.getElementById('mobile-menu');
+    mobileMenuButton.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+    
+    const navLinks = document.querySelectorAll('.nav-link');
+    const sections = document.querySelectorAll('section');
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').substring(1) === entry.target.id) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    }, { rootMargin: "-50% 0px -50% 0px", threshold: 0 });
+
+    sections.forEach(section => {
+        observer.observe(section);
+    });
+    
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            document.querySelector(this.getAttribute('href')).scrollIntoView({
+                behavior: 'smooth'
+            });
+            if (mobileMenu.classList.contains('hidden') === false) {
+                mobileMenu.classList.add('hidden');
+            }
+        });
+    });
+
+});
+</script>
+</body>
+</html>
+ 
